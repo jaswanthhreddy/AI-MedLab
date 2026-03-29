@@ -55,17 +55,19 @@ users_db = load_users()
 history_db = load_history()
 
 # -----------------------------
-# Load Model and Label Encoder
+# Load Model and Label Encoder (FIXED PATH)
 # -----------------------------
-model = joblib.load("model/disease_prediction_model_xgb.pkl")
-label_encoder = joblib.load("model/label_encoder.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+model = joblib.load(os.path.join(BASE_DIR, "model", "disease_prediction_model_xgb.pkl"))
+label_encoder = joblib.load(os.path.join(BASE_DIR, "model", "label_encoder.pkl"))
 
 print("Model expects:", model.n_features_in_, "features")
 
 # -----------------------------
 # Load Dataset (to get columns)
 # -----------------------------
-df = pd.read_csv("model/healthcare_dataset_onehot.csv")
+df = pd.read_csv(os.path.join(BASE_DIR, "model", "healthcare_dataset_onehot.csv"))
 
 # The retrained model doesn't use Patient_ID
 # Get feature columns (Age, Gender, and all symptoms)
@@ -598,23 +600,20 @@ def get_available_diseases():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/remove_patient/<email>", methods=["DELETE"])
+def remove_patient(email):
+    try:
+        if email in users_db:
+            del users_db[email]
+            save_users(users_db)
+
+        if email in history_db:
+            del history_db[email]
+            save_history(history_db)
+
+        return jsonify({"message": "Patient removed successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == "__main__":
-    
-    # =============================
-    # Remove Patient (Admin/Nurse/Doctor)
-    # =============================
-    @app.route("/remove_patient/<email>", methods=["DELETE"])
-    def remove_patient(email):
-        try:
-            # Remove from users_db
-            if email in users_db:
-                del users_db[email]
-                save_users(users_db)
-            # Remove from history_db
-            if email in history_db:
-                del history_db[email]
-                save_history(history_db)
-            return jsonify({"message": "Patient removed successfully"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
     app.run(debug=True)
