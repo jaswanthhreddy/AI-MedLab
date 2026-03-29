@@ -13,8 +13,8 @@ import hashlib
 import json
 import os
 from datetime import datetime
-from utils.health_recommendations import health_recommender
-from utils.pdf_generator import generate_health_report_pdf
+from Backend.utils.health_recommendations import health_recommender
+from Backend.utils.pdf_generator import generate_health_report_pdf
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 
